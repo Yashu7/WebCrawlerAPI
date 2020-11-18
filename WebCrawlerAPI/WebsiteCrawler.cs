@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Web;
+using WebCrawlerAPI.Controllers;
 using WebCrawlerAPI.Models;
 
 
@@ -13,7 +14,7 @@ namespace WebCrawlerAPI
 {
     public static class WebsiteCrawler
     {
-        public static List<GameModel> GetAllDiscounts()
+        public static void GetAllDiscounts()
         {
             #region Fields and Properties
             string allGamesUrl = "https://www.nintendo.co.uk/Search/Search-299117.html?f=147394-5-81";
@@ -101,10 +102,13 @@ namespace WebCrawlerAPI
                 } while (count <= 25);
             }
             #endregion
+            GameModelsController controller = new GameModelsController();
+            
+            foreach (GameModel g in titles)
+            {
+                controller.PostGameModel(g);
+            }
            
-            #region Return Value
-            return titles;
-            #endregion
         }
     }
     
