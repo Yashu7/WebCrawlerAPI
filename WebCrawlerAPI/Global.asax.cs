@@ -23,7 +23,7 @@ namespace WebCrawlerAPI
                 .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
                 .UseSimpleAssemblyNameTypeSerializer()
                 .UseRecommendedSerializerSettings()
-                .UseSqlServerStorage("Data Source=mssql01.dcsweb.pl;Initial Catalog=2094_aspnet-WebCrawlerAPI;User Id=2094_Yashu7; Password=Rikudosennin_6;", new SqlServerStorageOptions
+                .UseSqlServerStorage("Data Source=MYSERVER;Initial Catalog=2094_aspnet-WebCrawlerAPI;User Id=MYID; Password=MYPASSWORD;", new SqlServerStorageOptions
                 {
                     CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
                     SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
