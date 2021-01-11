@@ -33,17 +33,20 @@ namespace WebCrawlerAPI
         #region ChromeDriver Setup
      
             var chromeOptions = new ChromeOptions();
+            chromeOptions.AddArgument("--no-sandbox");
             chromeOptions.AddArgument("--headless");
             chromeOptions.AddArgument("--ignore-certificate-errors");
             chromeOptions.AddArgument("--disable-gpu");
+            
             chromeOptions.AddArgument("--nogpu");
+            chromeOptions.AddArgument("--disable-dev-shm-usage");
             chromeOptions.AddArgument("--disable-extensions");
             chromeOptions.AddArgument("--window-size=1920,1080");
             chromeOptions.AddArgument("--allow-running-insecure-content");
             chromeOptions.AddArgument("--allow-insecure-localhost");
             chromeOptions.AddAdditionalCapability("CapabilityType.AcceptSslCertificates", true, true);
             chromeOptions.AddAdditionalCapability("CapabilityType.AcceptInsecureCerts", true, true);
-            string location = AppDomain.CurrentDomain.BaseDirectory + "Chrome\\GoogleChromePortable.exe";
+            string location = AppDomain.CurrentDomain.BaseDirectory + "Chrome\\Application\\chrome.exe";
 
             ChromeDriverService service = ChromeDriverService.CreateDefaultService();
             service.HideCommandPromptWindow = true;
@@ -51,8 +54,9 @@ namespace WebCrawlerAPI
             #endregion
 
             #region Crawling
-            using (var browser = new ChromeDriver(service, chromeOptions))
+            using (var browser = new ChromeDriver(service, chromeOptions, TimeSpan.FromMinutes(3)))
             {
+                browser.Manage().Timeouts().PageLoad.Add(System.TimeSpan.FromSeconds(30));
                 browser.Url = discountedGamesUrl;
                 browser.FindElementByXPath("//a[@class='pla-btn pla-btn--region-store pla-btn--block plo-cookie-overlay__accept-btn']").Click();
                 Thread.Sleep(2000);
@@ -96,11 +100,20 @@ namespace WebCrawlerAPI
                         });
                     }
                     var buttons = browser.FindElementsByXPath("//button[@class='btn btn-primary']");
-                    buttons[buttons.Count() - 1].Click();
+                    try
+                    {
+                        buttons[5].Click();
+                    }
+                    catch(ArgumentOutOfRangeException)
+                    {
+                        break;
+                    }
                     count++;
                     Thread.Sleep(2000);
                 } while (count <= 25);
+                browser.Close();
             }
+            
             #endregion
             GameModelsController controller = new GameModelsController();
             
@@ -108,6 +121,7 @@ namespace WebCrawlerAPI
             {
                 controller.PostGameModel(g);
             }
+            
            
         }
     }

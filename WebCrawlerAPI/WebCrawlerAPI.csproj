@@ -1,7 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Microsoft.VisualStudio.Azure.Containers.Tools.Targets.1.10.9\build\Microsoft.VisualStudio.Azure.Containers.Tools.Targets.props" Condition="Exists('..\packages\Microsoft.VisualStudio.Azure.Containers.Tools.Targets.1.10.9\build\Microsoft.VisualStudio.Azure.Containers.Tools.Targets.props')" />
+  <Import Project="..\packages\Microsoft.Net.Compilers.Toolset.3.8.0\build\Microsoft.Net.Compilers.Toolset.props" Condition="Exists('..\packages\Microsoft.Net.Compilers.Toolset.3.8.0\build\Microsoft.Net.Compilers.Toolset.props')" />
   <Import Project="..\packages\EntityFramework.6.4.4\build\EntityFramework.props" Condition="Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.props')" />
-  <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -26,6 +27,8 @@
     <UseGlobalApplicationHostFile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
+    <DockerLaunchUrl>http://{ServiceIPAddress}</DockerLaunchUrl>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -61,9 +64,12 @@
     <Reference Include="Hangfire.SqlServer, Version=1.7.17.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Hangfire.SqlServer.1.7.17\lib\net45\Hangfire.SqlServer.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=3.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.Owin, Version=3.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Owin.3.0.1\lib\net45\Microsoft.Owin.dll</HintPath>
+    <Reference Include="Microsoft.Owin, Version=4.1.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Owin.4.1.1\lib\net45\Microsoft.Owin.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Owin.Host.SystemWeb, Version=3.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Owin.Host.SystemWeb.3.0.1\lib\net45\Microsoft.Owin.Host.SystemWeb.dll</HintPath>
@@ -74,6 +80,11 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Linq" />
+    <Reference Include="System.Runtime" />
+    <Reference Include="System.Runtime.InteropServices" />
+    <Reference Include="System.Runtime.InteropServices.RuntimeInformation" />
+    <Reference Include="System.Threading.Thread" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -146,11 +157,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform">
-      <HintPath>..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
@@ -185,14 +191,15 @@
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
     <Compile Include="Controllers\GameModelsController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
-    <Compile Include="Controllers\ValuesController.cs" />
     <Compile Include="CrawlerJobs.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="HangFire\AuthFilter.cs" />
     <Compile Include="Interfaces\IGameModel.cs" />
     <Compile Include="Models\GameModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Startup.cs" />
     <Compile Include="WebsiteCrawler.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -200,6 +207,112 @@
     <Content Include="chromedriver.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Chrome\Application\87.0.4280.88\chrome.dll" />
+    <Content Include="Chrome\Application\87.0.4280.88\chrome_elf.dll" />
+    <Content Include="Chrome\Application\87.0.4280.88\chrome_pwa_launcher.exe" />
+    <Content Include="Chrome\Application\87.0.4280.88\d3dcompiler_47.dll" />
+    <Content Include="Chrome\Application\87.0.4280.88\elevation_service.exe" />
+    <Content Include="Chrome\Application\87.0.4280.88\eventlog_provider.dll" />
+    <Content Include="Chrome\Application\87.0.4280.88\Installer\chrmstp.exe" />
+    <Content Include="Chrome\Application\87.0.4280.88\Installer\setup.exe" />
+    <Content Include="Chrome\Application\87.0.4280.88\libEGL.dll" />
+    <Content Include="Chrome\Application\87.0.4280.88\libGLESv2.dll" />
+    <Content Include="Chrome\Application\87.0.4280.88\mojo_core.dll" />
+    <Content Include="Chrome\Application\87.0.4280.88\notification_helper.exe" />
+    <Content Include="Chrome\Application\87.0.4280.88\swiftshader\libEGL.dll" />
+    <Content Include="Chrome\Application\87.0.4280.88\swiftshader\libGLESv2.dll" />
+    <Content Include="Chrome\Application\87.0.4280.88\VisualElements\Logo.png" />
+    <Content Include="Chrome\Application\87.0.4280.88\VisualElements\LogoBeta.png" />
+    <Content Include="Chrome\Application\87.0.4280.88\VisualElements\LogoCanary.png" />
+    <Content Include="Chrome\Application\87.0.4280.88\VisualElements\LogoDev.png" />
+    <Content Include="Chrome\Application\87.0.4280.88\VisualElements\SmallLogo.png" />
+    <Content Include="Chrome\Application\87.0.4280.88\VisualElements\SmallLogoBeta.png" />
+    <Content Include="Chrome\Application\87.0.4280.88\VisualElements\SmallLogoCanary.png" />
+    <Content Include="Chrome\Application\87.0.4280.88\VisualElements\SmallLogoDev.png" />
+    <Content Include="Chrome\Application\87.0.4280.88\WidevineCdm\_platform_specific\win_x64\widevinecdm.dll" />
+    <Content Include="Chrome\Application\chrome.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Chrome\Application\chrome.VisualElementsManifest.xml" />
+    <Content Include="Chrome\Application\chrome_proxy.exe" />
+    <Content Include="Chrome\App\AppInfo\appicon.ico" />
+    <Content Include="Chrome\App\AppInfo\appicon_128.png" />
+    <Content Include="Chrome\App\AppInfo\appicon_16.png" />
+    <Content Include="Chrome\App\AppInfo\appicon_32.png" />
+    <Content Include="Chrome\App\AppInfo\appicon_75.png" />
+    <Content Include="Chrome\App\AppInfo\EULA.txt" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\chrome.dll" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\chrome_child.dll" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\chrome_elf.dll" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\chrome_watcher.dll" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\d3dcompiler_47.dll" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\libegl.dll" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\libglesv2.dll" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\nacl64.exe" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\PepperFlash\pepflashplayer.dll" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\secondarytile.png" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\VisualElements\logo.png" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\VisualElements\smalllogo.png" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\widevinecdmadapter.dll" />
+    <Content Include="Chrome\App\Chrome-bin\chrome.exe" />
+    <Content Include="Chrome\App\Chrome-bin\wow_helper.exe" />
+    <Content Include="Chrome\App\readme.txt" />
+    <Content Include="Chrome\Data\profile\Avatars\avatar_generic.png" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\ngpampappnmepgilojfohadhhmbhlaek\6.25.12_0\background.js" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\ngpampappnmepgilojfohadhhmbhlaek\6.25.12_0\captured.html" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\ngpampappnmepgilojfohadhhmbhlaek\6.25.12_0\content.js" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\ngpampappnmepgilojfohadhhmbhlaek\6.25.12_0\document.js" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\ngpampappnmepgilojfohadhhmbhlaek\6.25.12_0\images\dwnlAll.png" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\ngpampappnmepgilojfohadhhmbhlaek\6.25.12_0\images\dwnlLink.png" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\ngpampappnmepgilojfohadhhmbhlaek\6.25.12_0\images\headBkgd.gif" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\ngpampappnmepgilojfohadhhmbhlaek\6.25.12_0\images\headTitle.gif" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\ngpampappnmepgilojfohadhhmbhlaek\6.25.12_0\images\logoBig.png" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\ngpampappnmepgilojfohadhhmbhlaek\6.25.12_0\images\logoSmall.png" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\ngpampappnmepgilojfohadhhmbhlaek\6.25.12_0\images\logoTonec.gif" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\ngpampappnmepgilojfohadhhmbhlaek\6.25.12_0\welcome.html" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\ngpampappnmepgilojfohadhhmbhlaek\6.25.12_0\welcome.js" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\craw_background.js" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\craw_window.js" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\css\craw_window.css" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\html\craw_window.html" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\images\flapper.gif" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\images\icon_128.png" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\images\icon_16.png" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\images\topbar_floating_button.png" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\images\topbar_floating_button_close.png" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\images\topbar_floating_button_hover.png" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\images\topbar_floating_button_maximize.png" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\images\topbar_floating_button_pressed.png" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\craw_background.js" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\craw_window.js" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\css\craw_window.css" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\html\craw_window.html" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\images\flapper.gif" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\images\icon_128.png" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\images\icon_16.png" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\images\topbar_floating_button.png" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\images\topbar_floating_button_close.png" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\images\topbar_floating_button_hover.png" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\images\topbar_floating_button_maximize.png" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\images\topbar_floating_button_pressed.png" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\CacheStorage\4cffe5d0b59926c8d8069ad00d0f24a3d5b507ed\index.txt" />
+    <Content Include="Chrome\GoogleChromePortable.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Chrome\Other\Help\images\donation_button.png" />
+    <Content Include="Chrome\Other\Help\images\favicon.ico" />
+    <Content Include="Chrome\Other\Help\images\help_background_footer.png" />
+    <Content Include="Chrome\Other\Help\images\help_background_header.png" />
+    <Content Include="Chrome\Other\Help\images\help_logo_top.png" />
+    <Content Include="Chrome\Other\Source\ChromePasswords\build.txt" />
+    <Content Include="Chrome\Other\Source\ChromePasswords\ChromePasswords.sln" />
+    <Content Include="Chrome\Other\Source\ChromePasswords\ChromePasswords\ChromePasswords.def" />
+    <Content Include="Chrome\Other\Source\ChromePasswords\ChromePasswords\dllmain.cpp" />
+    <Content Include="Chrome\Other\Source\ChromePasswords\ChromePasswords\sqlite.cpp" />
+    <Content Include="Chrome\Other\Source\ChromePasswords\ChromePasswords\sqlite.h" />
+    <Content Include="Chrome\Other\Source\ChromePasswords\Release\ChromePasswords.dll" />
+    <Content Include="Chrome\Other\Source\dialogsEx.dll" />
+    <Content Include="Chrome\Other\Source\License.txt" />
     <Content Include="Content\bootstrap-theme.css" />
     <Content Include="Content\bootstrap-theme.min.css" />
     <Content Include="Content\bootstrap.css" />
@@ -227,6 +340,419 @@
     <Content Include="Areas\HelpPage\Views\Help\DisplayTemplates\CollectionModelDescription.cshtml" />
     <Content Include="Areas\HelpPage\Views\Help\DisplayTemplates\ApiGroup.cshtml" />
     <Content Include="Areas\HelpPage\Views\Help\Api.cshtml" />
+    <Content Include="Chrome\Application\87.0.4280.88\87.0.4280.88.manifest" />
+    <Content Include="Chrome\Application\87.0.4280.88\chrome.dll.sig" />
+    <Content Include="Chrome\Application\87.0.4280.88\chrome.exe.sig" />
+    <Content Include="Chrome\Application\87.0.4280.88\chrome_100_percent.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\chrome_200_percent.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\default_apps\docs.crx" />
+    <Content Include="Chrome\Application\87.0.4280.88\default_apps\drive.crx" />
+    <Content Include="Chrome\Application\87.0.4280.88\default_apps\external_extensions.json" />
+    <Content Include="Chrome\Application\87.0.4280.88\default_apps\gmail.crx" />
+    <Content Include="Chrome\Application\87.0.4280.88\default_apps\youtube.crx" />
+    <Content Include="Chrome\Application\87.0.4280.88\Extensions\external_extensions.json" />
+    <Content Include="Chrome\Application\87.0.4280.88\icudtl.dat" />
+    <Content Include="Chrome\Application\87.0.4280.88\Installer\chrome.7z" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\am.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\ar.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\bg.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\bn.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\ca.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\cs.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\da.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\de.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\el.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\en-GB.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\en-US.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\es-419.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\es.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\et.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\fa.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\fi.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\fil.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\fr.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\gu.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\he.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\hi.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\hr.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\hu.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\id.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\it.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\ja.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\kn.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\ko.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\lt.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\lv.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\ml.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\mr.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\ms.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\nb.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\nl.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\pl.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\pt-BR.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\pt-PT.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\ro.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\ru.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\sk.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\sl.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\sr.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\sv.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\sw.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\ta.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\te.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\th.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\tr.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\uk.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\vi.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\zh-CN.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\Locales\zh-TW.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\MEIPreload\manifest.json" />
+    <Content Include="Chrome\Application\87.0.4280.88\MEIPreload\preloaded_data.pb" />
+    <Content Include="Chrome\Application\87.0.4280.88\nacl_irt_x86_64.nexe" />
+    <Content Include="Chrome\Application\87.0.4280.88\resources.pak" />
+    <Content Include="Chrome\Application\87.0.4280.88\v8_context_snapshot.bin" />
+    <Content Include="Chrome\Application\87.0.4280.88\WidevineCdm\LICENSE" />
+    <Content Include="Chrome\Application\87.0.4280.88\WidevineCdm\manifest.json" />
+    <Content Include="Chrome\Application\87.0.4280.88\WidevineCdm\_platform_specific\win_x64\widevinecdm.dll.sig" />
+    <Content Include="Chrome\Application\master_preferences" />
+    <Content Include="Chrome\Application\SetupMetrics\20210106113443.pma" />
+    <Content Include="Chrome\App\AppInfo\appcompactor.ini" />
+    <Content Include="Chrome\App\AppInfo\appinfo.ini" />
+    <Content Include="Chrome\App\AppInfo\installer.ini" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\51.0.2704.63.manifest" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\chrome_100_percent.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\chrome_200_percent.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\chrome_material_100_percent.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\chrome_material_200_percent.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\default_apps\docs.crx" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\default_apps\drive.crx" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\default_apps\external_extensions.json" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\default_apps\gmail.crx" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\default_apps\youtube.crx" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Extensions\external_extensions.json" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\icudtl.dat" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\am.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\ar.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\bg.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\bn.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\ca.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\cs.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\da.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\de.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\el.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\en-GB.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\en-US.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\es-419.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\es.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\et.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\fa.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\fi.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\fil.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\fr.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\gu.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\he.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\hi.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\hr.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\hu.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\id.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\it.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\ja.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\kn.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\ko.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\lt.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\lv.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\ml.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\mr.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\ms.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\nb.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\nl.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\pl.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\pt-BR.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\pt-PT.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\ro.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\ru.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\sk.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\sl.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\sr.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\sv.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\sw.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\ta.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\te.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\th.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\tr.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\uk.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\vi.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\zh-CN.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\Locales\zh-TW.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\nacl_irt_x86_32.nexe" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\nacl_irt_x86_64.nexe" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\natives_blob.bin" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\PepperFlash\manifest.json" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\resources.pak" />
+    <Content Include="Chrome\App\Chrome-bin\51.0.2704.63\snapshot_blob.bin" />
+    <Content Include="Chrome\App\Chrome-bin\First Run" />
+    <Content Include="Chrome\App\DefaultData\profile\Default\Bookmarks" />
+    <Content Include="Chrome\App\DefaultData\profile\Default\Favicons" />
+    <Content Include="Chrome\App\DefaultData\profile\Default\History" />
+    <Content Include="Chrome\App\DefaultData\profile\Default\Preferences" />
+    <Content Include="Chrome\App\DefaultData\profile\Default\Top Sites" />
+    <Content Include="Chrome\App\DefaultData\profile\Default\Web Data" />
+    <Content Include="Chrome\Data\PortableApps.comInstaller\license.ini" />
+    <Content Include="Chrome\Data\profile\Default\Bookmarks" />
+    <Content Include="Chrome\Data\profile\Default\Bookmarks.bak" />
+    <Content Include="Chrome\Data\profile\Default\Cookies" />
+    <Content Include="Chrome\Data\profile\Default\Cookies-journal" />
+    <Content Include="Chrome\Data\profile\Default\Current Session" />
+    <Content Include="Chrome\Data\profile\Default\Current Tabs" />
+    <Content Include="Chrome\Data\profile\Default\databases\Databases.db" />
+    <Content Include="Chrome\Data\profile\Default\databases\Databases.db-journal" />
+    <Content Include="Chrome\Data\profile\Default\data_reduction_proxy_leveldb\000003.log" />
+    <Content Include="Chrome\Data\profile\Default\data_reduction_proxy_leveldb\CURRENT" />
+    <Content Include="Chrome\Data\profile\Default\data_reduction_proxy_leveldb\LOCK" />
+    <Content Include="Chrome\Data\profile\Default\data_reduction_proxy_leveldb\LOG" />
+    <Content Include="Chrome\Data\profile\Default\data_reduction_proxy_leveldb\LOG.old" />
+    <Content Include="Chrome\Data\profile\Default\data_reduction_proxy_leveldb\MANIFEST-000001" />
+    <Content Include="Chrome\Data\profile\Default\Extension Cookies" />
+    <Content Include="Chrome\Data\profile\Default\Extension Cookies-journal" />
+    <Content Include="Chrome\Data\profile\Default\Extension Rules\000003.log" />
+    <Content Include="Chrome\Data\profile\Default\Extension Rules\CURRENT" />
+    <Content Include="Chrome\Data\profile\Default\Extension Rules\LOCK" />
+    <Content Include="Chrome\Data\profile\Default\Extension Rules\LOG" />
+    <Content Include="Chrome\Data\profile\Default\Extension Rules\LOG.old" />
+    <Content Include="Chrome\Data\profile\Default\Extension Rules\MANIFEST-000001" />
+    <Content Include="Chrome\Data\profile\Default\Extension State\000003.log" />
+    <Content Include="Chrome\Data\profile\Default\Extension State\CURRENT" />
+    <Content Include="Chrome\Data\profile\Default\Extension State\LOCK" />
+    <Content Include="Chrome\Data\profile\Default\Extension State\LOG" />
+    <Content Include="Chrome\Data\profile\Default\Extension State\LOG.old" />
+    <Content Include="Chrome\Data\profile\Default\Extension State\MANIFEST-000001" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\ngpampappnmepgilojfohadhhmbhlaek\6.25.12_0\manifest.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\ngpampappnmepgilojfohadhhmbhlaek\6.25.12_0\_locales\en\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\manifest.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\bg\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\ca\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\cs\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\da\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\de\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\el\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\en\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\en_GB\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\es\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\es_419\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\et\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\fil\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\fi\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\fr\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\hi\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\hr\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\hu\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\id\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\it\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\ja\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\ko\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\lt\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\lv\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\nb\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\nl\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\pl\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\pt_BR\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\pt_PT\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\ro\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\ru\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\sk\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\sl\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\sr\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\sv\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\th\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\tr\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\uk\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\vi\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\zh_CN\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_locales\zh_TW\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.0_0\_metadata\verified_contents.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\manifest.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\bg\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\ca\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\cs\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\da\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\de\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\el\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\en\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\en_GB\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\es\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\es_419\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\et\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\fil\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\fi\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\fr\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\hi\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\hr\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\hu\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\id\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\it\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\ja\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\ko\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\lt\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\lv\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\nb\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\nl\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\pl\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\pt_BR\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\pt_PT\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\ro\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\ru\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\sk\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\sl\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\sr\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\sv\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\th\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\tr\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\uk\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\vi\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\zh_CN\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_locales\zh_TW\messages.json" />
+    <Content Include="Chrome\Data\profile\Default\Extensions\nmmhkkegccagdldgiimedpiccmgmieda\1.0.0.5_0\_metadata\verified_contents.json" />
+    <Content Include="Chrome\Data\profile\Default\Favicons" />
+    <Content Include="Chrome\Data\profile\Default\Favicons-journal" />
+    <Content Include="Chrome\Data\profile\Default\GPUCache\data_0" />
+    <Content Include="Chrome\Data\profile\Default\GPUCache\data_1" />
+    <Content Include="Chrome\Data\profile\Default\GPUCache\data_2" />
+    <Content Include="Chrome\Data\profile\Default\GPUCache\data_3" />
+    <Content Include="Chrome\Data\profile\Default\GPUCache\index" />
+    <Content Include="Chrome\Data\profile\Default\History" />
+    <Content Include="Chrome\Data\profile\Default\History Provider Cache" />
+    <Content Include="Chrome\Data\profile\Default\History-journal" />
+    <Content Include="Chrome\Data\profile\Default\IndexedDB\https_www.google.com_0.indexeddb.leveldb\000003.log" />
+    <Content Include="Chrome\Data\profile\Default\IndexedDB\https_www.google.com_0.indexeddb.leveldb\CURRENT" />
+    <Content Include="Chrome\Data\profile\Default\IndexedDB\https_www.google.com_0.indexeddb.leveldb\LOCK" />
+    <Content Include="Chrome\Data\profile\Default\IndexedDB\https_www.google.com_0.indexeddb.leveldb\LOG" />
+    <Content Include="Chrome\Data\profile\Default\IndexedDB\https_www.google.com_0.indexeddb.leveldb\MANIFEST-000001" />
+    <Content Include="Chrome\Data\profile\Default\IndexedDB\https_www.google.pl_0.indexeddb.leveldb\000003.log" />
+    <Content Include="Chrome\Data\profile\Default\IndexedDB\https_www.google.pl_0.indexeddb.leveldb\CURRENT" />
+    <Content Include="Chrome\Data\profile\Default\IndexedDB\https_www.google.pl_0.indexeddb.leveldb\LOCK" />
+    <Content Include="Chrome\Data\profile\Default\IndexedDB\https_www.google.pl_0.indexeddb.leveldb\LOG" />
+    <Content Include="Chrome\Data\profile\Default\IndexedDB\https_www.google.pl_0.indexeddb.leveldb\LOG.old" />
+    <Content Include="Chrome\Data\profile\Default\IndexedDB\https_www.google.pl_0.indexeddb.leveldb\MANIFEST-000001" />
+    <Content Include="Chrome\Data\profile\Default\JumpListIcons\12BB.tmp" />
+    <Content Include="Chrome\Data\profile\Default\JumpListIcons\12BC.tmp" />
+    <Content Include="Chrome\Data\profile\Default\JumpListIcons\12BD.tmp" />
+    <Content Include="Chrome\Data\profile\Default\JumpListIcons\12BE.tmp" />
+    <Content Include="Chrome\Data\profile\Default\Last Session" />
+    <Content Include="Chrome\Data\profile\Default\Last Tabs" />
+    <Content Include="Chrome\Data\profile\Default\Login Data" />
+    <Content Include="Chrome\Data\profile\Default\Login Data-journal" />
+    <Content Include="Chrome\Data\profile\Default\Network Action Predictor" />
+    <Content Include="Chrome\Data\profile\Default\Network Action Predictor-journal" />
+    <Content Include="Chrome\Data\profile\Default\Network Persistent State" />
+    <Content Include="Chrome\Data\profile\Default\Origin Bound Certs" />
+    <Content Include="Chrome\Data\profile\Default\Origin Bound Certs-journal" />
+    <Content Include="Chrome\Data\profile\Default\Preferences" />
+    <Content Include="Chrome\Data\profile\Default\QuotaManager" />
+    <Content Include="Chrome\Data\profile\Default\QuotaManager-journal" />
+    <Content Include="Chrome\Data\profile\Default\Secure Preferences" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\CacheStorage\4cffe5d0b59926c8d8069ad00d0f24a3d5b507ed\7F0B5CEE-C558-47A0-9ECB-B73C6AD16CA0\38b904fc460b0fac_0" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\CacheStorage\4cffe5d0b59926c8d8069ad00d0f24a3d5b507ed\7F0B5CEE-C558-47A0-9ECB-B73C6AD16CA0\3ac2f32fe271fa66_0" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\CacheStorage\4cffe5d0b59926c8d8069ad00d0f24a3d5b507ed\7F0B5CEE-C558-47A0-9ECB-B73C6AD16CA0\3d94f88beb6e7e63_0" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\CacheStorage\4cffe5d0b59926c8d8069ad00d0f24a3d5b507ed\7F0B5CEE-C558-47A0-9ECB-B73C6AD16CA0\42256cbea9026385_0" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\CacheStorage\4cffe5d0b59926c8d8069ad00d0f24a3d5b507ed\7F0B5CEE-C558-47A0-9ECB-B73C6AD16CA0\5c3815adfcc90c3a_0" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\CacheStorage\4cffe5d0b59926c8d8069ad00d0f24a3d5b507ed\7F0B5CEE-C558-47A0-9ECB-B73C6AD16CA0\69a7d3372b0cc1c6_0" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\CacheStorage\4cffe5d0b59926c8d8069ad00d0f24a3d5b507ed\7F0B5CEE-C558-47A0-9ECB-B73C6AD16CA0\76dd8c4188740cb6_0" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\CacheStorage\4cffe5d0b59926c8d8069ad00d0f24a3d5b507ed\7F0B5CEE-C558-47A0-9ECB-B73C6AD16CA0\7f0cd175fc52609a_0" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\CacheStorage\4cffe5d0b59926c8d8069ad00d0f24a3d5b507ed\7F0B5CEE-C558-47A0-9ECB-B73C6AD16CA0\81cac998d0d461e7_0" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\CacheStorage\4cffe5d0b59926c8d8069ad00d0f24a3d5b507ed\7F0B5CEE-C558-47A0-9ECB-B73C6AD16CA0\84c0a74e2114263f_0" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\CacheStorage\4cffe5d0b59926c8d8069ad00d0f24a3d5b507ed\7F0B5CEE-C558-47A0-9ECB-B73C6AD16CA0\8a0dc21cb2eeec0b_0" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\CacheStorage\4cffe5d0b59926c8d8069ad00d0f24a3d5b507ed\7F0B5CEE-C558-47A0-9ECB-B73C6AD16CA0\e7141cdfee085e85_0" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\CacheStorage\4cffe5d0b59926c8d8069ad00d0f24a3d5b507ed\7F0B5CEE-C558-47A0-9ECB-B73C6AD16CA0\fdf2cfeb8ad0eeac_0" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\CacheStorage\4cffe5d0b59926c8d8069ad00d0f24a3d5b507ed\7F0B5CEE-C558-47A0-9ECB-B73C6AD16CA0\index" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\CacheStorage\4cffe5d0b59926c8d8069ad00d0f24a3d5b507ed\7F0B5CEE-C558-47A0-9ECB-B73C6AD16CA0\index-dir\the-real-index" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\Database\000003.log" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\Database\CURRENT" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\Database\LOCK" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\Database\LOG" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\Database\LOG.old" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\Database\MANIFEST-000001" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\ScriptCache\2cc80dabc69f58b6_0" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\ScriptCache\2cc80dabc69f58b6_1" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\ScriptCache\index" />
+    <Content Include="Chrome\Data\profile\Default\Service Worker\ScriptCache\index-dir\the-real-index" />
+    <Content Include="Chrome\Data\profile\Default\Session Storage\000003.log" />
+    <Content Include="Chrome\Data\profile\Default\Session Storage\CURRENT" />
+    <Content Include="Chrome\Data\profile\Default\Session Storage\LOCK" />
+    <Content Include="Chrome\Data\profile\Default\Session Storage\LOG" />
+    <Content Include="Chrome\Data\profile\Default\Session Storage\LOG.old" />
+    <Content Include="Chrome\Data\profile\Default\Session Storage\MANIFEST-000001" />
+    <Content Include="Chrome\Data\profile\Default\Shortcuts" />
+    <Content Include="Chrome\Data\profile\Default\Shortcuts-journal" />
+    <Content Include="Chrome\Data\profile\Default\Top Sites" />
+    <Content Include="Chrome\Data\profile\Default\Top Sites-journal" />
+    <Content Include="Chrome\Data\profile\Default\TransportSecurity" />
+    <Content Include="Chrome\Data\profile\Default\Visited Links" />
+    <Content Include="Chrome\Data\profile\Default\Web Data" />
+    <Content Include="Chrome\Data\profile\Default\Web Data-journal" />
+    <Content Include="Chrome\Data\profile\First Run" />
+    <Content Include="Chrome\Data\profile\Local State" />
+    <Content Include="Chrome\Data\profile\Safe Browsing Cookies" />
+    <Content Include="Chrome\Data\profile\Safe Browsing Cookies-journal" />
+    <Content Include="Chrome\Data\profile\ShaderCache\GPUCache\data_0" />
+    <Content Include="Chrome\Data\profile\ShaderCache\GPUCache\data_1" />
+    <Content Include="Chrome\Data\profile\ShaderCache\GPUCache\data_2" />
+    <Content Include="Chrome\Data\profile\ShaderCache\GPUCache\data_3" />
+    <Content Include="Chrome\Data\profile\ShaderCache\GPUCache\index" />
+    <Content Include="Chrome\Other\Source\attrib.nsh" />
+    <Content Include="Chrome\Other\Source\ChromePasswords\ChromePasswords\ChromePasswords.vcxproj" />
+    <Content Include="Chrome\Other\Source\dialogs.nsh" />
+    <Content Include="Chrome\Other\Source\GoogleChromePortable.ini" />
+    <Content Include="Chrome\Other\Source\GoogleChromePortable.nsi" />
+    <Content Include="Chrome\Other\Source\Languages\Irish.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Italian.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Japanese.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Khmer.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Korean.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Kurdish.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Latvian.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Lithuanian.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Luxembourgish.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Macedonian.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Malagasy.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Malay.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Mongolian.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Norwegian.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\NorwegianNynorsk.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Pashto.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Polish.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Portuguese.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\PortugueseBR.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Romanian.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Russian.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Serbian.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\SerbianLatin.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\SimpChinese.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Slovak.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Slovenian.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Spanish.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\SpanishInternational.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Swahili.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Swedish.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Thai.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\TradChinese.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Turkish.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Ukrainian.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Uzbek.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Valencian.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Vietnamese.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Welsh.nsh" />
+    <Content Include="Chrome\Other\Source\Languages\Yoruba.nsh" />
+    <Content Include="Chrome\Other\Source\PortableApps.comLauncherLANG_ENGLISH.nsh" />
+    <Content Include="Chrome\Other\Source\PortableApps.comLauncherOptionsForm.ini" />
+    <Content Include="Chrome\Other\Source\TBProgress.nsh" />
+    <None Include="Dockerfile" />
+    <None Include=".dockerignore">
+      <DependentUpon>Dockerfile</DependentUpon>
+    </None>
+    <None Include="Properties\PublishProfiles\EshopCrawlerDocker.pubxml" />
+    <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
+    <None Include="Properties\PublishProfiles\WebCrawlerAPI20201231154759 - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\WebCrawlerAPI20201231154759 - Web Deploy1.pubxml" />
     <None Include="Scripts\jquery-3.4.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.4.1.js" />
     <Content Include="Scripts\jquery-3.4.1.min.js" />
@@ -250,6 +776,16 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Chrome\Data\profile\Caps\" />
+    <Folder Include="Chrome\Data\profile\CertificateTransparency\" />
+    <Folder Include="Chrome\Data\profile\Default\Extensions\Temp\" />
+    <Folder Include="Chrome\Data\profile\Default\Local Storage\" />
+    <Folder Include="Chrome\Data\profile\EVWhitelist\" />
+    <Folder Include="Chrome\Data\profile\PepperFlash\" />
+    <Folder Include="Chrome\Data\profile\pnacl\" />
+    <Folder Include="Chrome\Data\profile\SwiftShader\" />
+    <Folder Include="Chrome\Data\profile\SwReporter\" />
+    <Folder Include="Chrome\Data\profile\WidevineCDM\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff2" />
@@ -315,13 +851,18 @@
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
     <Error Condition="!Exists('..\packages\Selenium.WebDriver.ChromeDriver.86.0.4240.2200\build\Selenium.WebDriver.ChromeDriver.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Selenium.WebDriver.ChromeDriver.86.0.4240.2200\build\Selenium.WebDriver.ChromeDriver.targets'))" />
     <Error Condition="!Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.4.4\build\EntityFramework.props'))" />
     <Error Condition="!Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.4.4\build\EntityFramework.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Net.Compilers.Toolset.3.8.0\build\Microsoft.Net.Compilers.Toolset.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Net.Compilers.Toolset.3.8.0\build\Microsoft.Net.Compilers.Toolset.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.VisualStudio.Azure.Containers.Tools.Targets.1.10.9\build\Microsoft.VisualStudio.Azure.Containers.Tools.Targets.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.VisualStudio.Azure.Containers.Tools.Targets.1.10.9\build\Microsoft.VisualStudio.Azure.Containers.Tools.Targets.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.VisualStudio.Azure.Containers.Tools.Targets.1.10.9\build\Microsoft.VisualStudio.Azure.Containers.Tools.Targets.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.VisualStudio.Azure.Containers.Tools.Targets.1.10.9\build\Microsoft.VisualStudio.Azure.Containers.Tools.Targets.targets'))" />
   </Target>
   <Import Project="..\packages\Selenium.WebDriver.ChromeDriver.86.0.4240.2200\build\Selenium.WebDriver.ChromeDriver.targets" Condition="Exists('..\packages\Selenium.WebDriver.ChromeDriver.86.0.4240.2200\build\Selenium.WebDriver.ChromeDriver.targets')" />
   <Import Project="..\packages\EntityFramework.6.4.4\build\EntityFramework.targets" Condition="Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" />
+  <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" />
+  <Import Project="..\packages\Microsoft.VisualStudio.Azure.Containers.Tools.Targets.1.10.9\build\Microsoft.VisualStudio.Azure.Containers.Tools.Targets.targets" Condition="Exists('..\packages\Microsoft.VisualStudio.Azure.Containers.Tools.Targets.1.10.9\build\Microsoft.VisualStudio.Azure.Containers.Tools.Targets.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

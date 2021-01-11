@@ -11,6 +11,7 @@ using Hangfire;
 using Hangfire.SqlServer;
 using Hangfire.Storage;
 using Microsoft.Owin.Host.SystemWeb;
+using Owin;
 using WebCrawlerAPI.Controllers;
 
 namespace WebCrawlerAPI
@@ -19,11 +20,13 @@ namespace WebCrawlerAPI
     {
         private IEnumerable<IDisposable> GetHangfireServers()
         {
+            
             Hangfire.GlobalConfiguration.Configuration
                 .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
                 .UseSimpleAssemblyNameTypeSerializer()
                 .UseRecommendedSerializerSettings()
-                .UseSqlServerStorage("Data Source=MYSERVER;Initial Catalog=2094_aspnet-WebCrawlerAPI;User Id=MYID; Password=MYPASSWORD;", new SqlServerStorageOptions
+                
+                .UseSqlServerStorage("Server=tcp:jmalawskidb.database.windows.net,1433;Initial Catalog=WebCrawlerDB;Persist Security Info=False;User ID=janmalawski;Password=Rikudosennin6;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;", new SqlServerStorageOptions
                 {
                     CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
                     SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
@@ -42,21 +45,31 @@ namespace WebCrawlerAPI
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             HangfireAspNet.Use(GetHangfireServers);
-            BackgroundJob.Enqueue(() => CrawlerJobs.RemoveAll());
-            BackgroundJob.Enqueue(() => CrawlerJobs.GetDiscounts());
-            
-            using (var connection = JobStorage.Current.GetConnection())
-            {
-                foreach (var recurringJob in StorageConnectionExtensions.GetRecurringJobs(connection))
-                {
-                    RecurringJob.RemoveIfExists(recurringJob.Id);
-                }
-            }
-            RecurringJob.AddOrUpdate(() => CrawlerJobs.RemoveAll(), Cron.Daily);
-            RecurringJob.AddOrUpdate(() => CrawlerJobs.GetDiscounts(), Cron.Daily);
 
-          
+
+            //BackgroundJob.Enqueue(() => CrawlerJobs.RemoveAll());
+            //BackgroundJob.Enqueue(() => CrawlerJobs.GetDiscounts());
+
+            //using (var connection = JobStorage.Current.GetConnection())
+            //{
+
+            //    foreach (var recurringJob in StorageConnectionExtensions.GetRecurringJobs(connection))
+            //    {
+            //        RecurringJob.RemoveIfExists(recurringJob.Id);
+            //    }
+            //}
+            // BackgroundJob.Enqueue(() => CrawlerJobs.AddGame());
+
+
+            //RecurringJob.AddOrUpdate(() => CrawlerJobs.RemoveAll(), Cron.Daily);
+            var manager = new RecurringJobManager();
+            manager.RemoveIfExists("500");
+            manager.AddOrUpdate("500", () => CrawlerJobs.GetDiscounts(), Cron.Daily);
+            manager.Trigger("500");
+
+
         }
-        
+
+
     }
 }

@@ -17,10 +17,12 @@ namespace WebCrawlerAPI.Controllers
         private GameDBContext db = new GameDBContext();
 
         // GET: api/GameModels
+        [Route("api/allgames/")]
         public IQueryable<GameModel> GetGames()
         {
                 return db.Games;
         }
+        [ApiExplorerSettings(IgnoreApi = true)]
         // POST: api/GameModels
         [ResponseType(typeof(GameModel))]
         public IHttpActionResult PostGameModel(GameModel gameModel)
@@ -34,6 +36,7 @@ namespace WebCrawlerAPI.Controllers
             db.SaveChanges();
             return CreatedAtRoute("DefaultApi", new { id = gameModel.Id }, gameModel);
         }
+        [ApiExplorerSettings(IgnoreApi = true)]
         // DELETE: api/DeleteAll
         public void DeleteAllGameModels()
         {
