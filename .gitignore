@@ -340,4 +340,7 @@ ASALocalRun/
 healthchecksdb
 
 #Chrome Browser
-WebCrawlerAPI/Chrome/
+.WebCrawlerAPI/Chrome/
+.WebCrawlerAPI/Chrome
+.Chrome/
+.Chrome
