@@ -26,7 +26,7 @@ namespace WebCrawlerAPI
                 .UseSimpleAssemblyNameTypeSerializer()
                 .UseRecommendedSerializerSettings()
                 
-                .UseSqlServerStorage("Server=tcp:jmalawskidb.database.windows.net,1433;Initial Catalog=WebCrawlerDB;Persist Security Info=False;User ID=janmalawski;Password=Rikudosennin6;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;", new SqlServerStorageOptions
+                .UseSqlServerStorage("Server=tcp:jmalawskidb.database.windows.net,1433;Initial Catalog=WebCrawlerDB;Persist Security Info=False;User ID=janmalawski;Password=***;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;", new SqlServerStorageOptions
                 {
                     CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
                     SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
