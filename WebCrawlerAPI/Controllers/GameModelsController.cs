@@ -17,6 +17,10 @@ namespace WebCrawlerAPI.Controllers
         private GameDBContext db = new GameDBContext();
 
         // GET: api/GameModels
+        /// <summary>
+        /// Get all games on sale from the API
+        /// </summary>
+        /// <returns></returns>
         [Route("api/allgames/")]
         public IQueryable<GameModel> GetGames()
         {
